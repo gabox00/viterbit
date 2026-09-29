@@ -1,11 +1,13 @@
 .DEFAULT_GOAL := help
 
 COMPOSE    := docker compose
-PHP        := $(COMPOSE) exec php
-PHP_RUN    := $(COMPOSE) run --rm --no-deps php
-NODE       := $(COMPOSE) exec frontend
-NODE_RUN   := $(COMPOSE) run --rm --no-deps frontend
-PLAYWRIGHT := $(COMPOSE) run --rm --no-deps playwright
+# Without a terminal on stdin (git hooks, CI) Docker cannot allocate a TTY, so ask for none
+NO_TTY     := $(shell [ -t 0 ] || echo -T)
+PHP        := $(COMPOSE) exec $(NO_TTY) php
+PHP_RUN    := $(COMPOSE) run --rm --no-deps $(NO_TTY) php
+NODE       := $(COMPOSE) exec $(NO_TTY) frontend
+NODE_RUN   := $(COMPOSE) run --rm --no-deps $(NO_TTY) frontend
+PLAYWRIGHT := $(COMPOSE) run --rm --no-deps $(NO_TTY) playwright
 
 c ?= php
 PHP_SERVICES := php worker-enrich-cv-on-job-application-submitted

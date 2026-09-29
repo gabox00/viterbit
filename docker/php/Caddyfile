@@ -1,0 +1,16 @@
+{
+	frankenphp {
+		worker {
+			file /app/public/index.php
+			env FRANKENPHP_WORKER 1
+			watch /app/src/**/*.php
+			watch /app/config/**/*.yaml
+		}
+	}
+}
+
+{$SERVER_NAME} {
+	root * /app/public
+	encode zstd gzip
+	php_server
+}

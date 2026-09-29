@@ -1,0 +1,5 @@
+# Sourced by the hooks: the checks run inside the Docker stack, so it must be up
+if [ -z "$(docker compose ps --status running --quiet php 2>/dev/null)" ]; then
+  echo "The Docker stack is not running. Start it with 'make up' and try again."
+  exit 1
+fi

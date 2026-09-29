@@ -1,0 +1,6 @@
+# Local tooling: editor and Claude Code settings are personal
+/.claude/
+/.idea/
+
+# macOS
+.DS_Store

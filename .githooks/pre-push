@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_require-stack"
+
+# Every backend and frontend test suite, end-to-end included
+make test

@@ -1,0 +1,47 @@
+deptrac:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*Kernel\.php$#'
+  layers:
+    - name: Domain
+      collectors:
+        - type: directory
+          value: src/[^/]+/Domain/.*
+    - name: Application
+      collectors:
+        - type: directory
+          value: src/[^/]+/Application/.*
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          value: src/[^/]+/Infrastructure/.*
+    - name: Psr
+      collectors:
+        - type: classNameRegex
+          value: '#^Psr\\#'
+    # ORM mapping attributes are the only framework code allowed in the domain
+    - name: DoctrineMapping
+      collectors:
+        - type: classNameRegex
+          value: '#^Doctrine\\ORM\\Mapping\\#'
+    - name: Vendor
+      collectors:
+        - type: bool
+          must:
+            - type: classNameRegex
+              value: '#^(Symfony|Doctrine)\\#'
+          must_not:
+            - type: layer
+              value: DoctrineMapping
+  ruleset:
+    Domain:
+      - DoctrineMapping
+    Application:
+      - Domain
+      - Psr
+    Infrastructure:
+      - Application
+      - Domain
+      - Psr
+      - Vendor

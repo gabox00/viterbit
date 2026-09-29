@@ -1,0 +1,26 @@
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+        types:
+            utc_datetime_immutable: App\Shared\Infrastructure\Persistence\Type\UtcDateTimeImmutableType
+            job_position_hash: App\JobPosition\Infrastructure\Persistence\Type\JobPositionHashType
+            job_application_hash: App\JobApplication\Infrastructure\Persistence\Type\JobApplicationHashType
+            email: App\JobApplication\Infrastructure\Persistence\Type\EmailType
+            ai_score: App\JobApplication\Infrastructure\Persistence\Type\AiScoreType
+    orm:
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        mappings:
+            JobPosition:
+                type: attribute
+                dir: '%kernel.project_dir%/src/JobPosition/Domain/Entity'
+                prefix: 'App\JobPosition\Domain\Entity'
+            JobApplication:
+                type: attribute
+                dir: '%kernel.project_dir%/src/JobApplication/Domain/Entity'
+                prefix: 'App\JobApplication\Domain\Entity'
+
+when@test:
+    doctrine:
+        dbal:
+            # Tests use their own database next to the dev one: viterbit_test
+            dbname_suffix: '_test'

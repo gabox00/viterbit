@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_require-stack"
+
+# Static checks for backend and frontend: php-cs-fixer, Doctrine mapping, ESLint, tsc, PHPStan and deptrac
+make lint stan deptrac

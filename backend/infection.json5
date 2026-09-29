@@ -1,0 +1,22 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["src"],
+        "excludes": ["Kernel.php", "Infrastructure/Http", "Infrastructure/Persistence", "Infrastructure/Bus"]
+    },
+    "testFrameworkOptions": "--testsuite=unit",
+    // pcov is off by default in php.ini; turn it on only for the coverage run
+    "initialTestsPhpOptions": "-d pcov.enabled=1",
+    "logs": {
+        "text": "var/infection/infection.log",
+        "summary": "var/infection/summary.log"
+    },
+    "tmpDir": "var/infection",
+    "minMsi": 80,
+    "minCoveredMsi": 90,
+    "mutators": {
+        "@default": true,
+        // ORM mapping attributes are metadata: unit tests cannot kill their mutants. The integration tests and doctrine:schema:validate cover them
+        "global-ignoreSourceCodeByRegex": ["#\\[ORM\\\\.+"]
+    }
+}

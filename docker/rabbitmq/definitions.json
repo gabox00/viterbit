@@ -1,0 +1,102 @@
+{
+  "users": [
+    {
+      "name": "viterbit_app",
+      "password_hash": "Ies5yWRUUl9Dq/mh/5SMZfZ2/LgUrTT1rlMpIhtUv3yUyUkl",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": []
+    },
+    {
+      "name": "viterbit_admin",
+      "password_hash": "PxWtkTl+ZY0mcgBMkSu1JMY1l4qtaDcT6NLaEnkcyvhXN2mf",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "viterbit"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "viterbit_app",
+      "vhost": "viterbit",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "viterbit_admin",
+      "vhost": "viterbit",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "viterbit.domain_events",
+      "vhost": "viterbit",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "viterbit.domain_events.delays",
+      "vhost": "viterbit",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "viterbit.domain_events.dead_letter",
+      "vhost": "viterbit",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "viterbit.job_application.1.enrich_cv_on_job_application_submitted",
+      "vhost": "viterbit",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "viterbit.job_application.1.enrich_cv_on_job_application_submitted.dead_letter",
+      "vhost": "viterbit",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "viterbit.domain_events",
+      "vhost": "viterbit",
+      "destination": "viterbit.job_application.1.enrich_cv_on_job_application_submitted",
+      "destination_type": "queue",
+      "routing_key": "viterbit.job_application.1.enrich_cv_on_job_application_submitted",
+      "arguments": {}
+    },
+    {
+      "source": "viterbit.domain_events.dead_letter",
+      "vhost": "viterbit",
+      "destination": "viterbit.job_application.1.enrich_cv_on_job_application_submitted.dead_letter",
+      "destination_type": "queue",
+      "routing_key": "viterbit.job_application.1.enrich_cv_on_job_application_submitted",
+      "arguments": {}
+    }
+  ]
+}

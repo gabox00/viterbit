@@ -1,0 +1,54 @@
+deptrac:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*Kernel\.php$#'
+  layers:
+    - name: Shared
+      collectors:
+        - type: directory
+          value: src/Shared/.*
+
+    - name: JobPositionContract
+      collectors:
+        - type: classNameRegex
+          value: '#^App\\JobPosition\\(Domain\\Event\\.+|Application\\.+(Query|Dto))$#'
+    # JobApplication holds a Doctrine relation to JobPosition, so it may use its entity, value objects and repository
+    - name: JobPositionAggregate
+      collectors:
+        - type: classNameRegex
+          value: '#^App\\JobPosition\\Domain\\(Entity|ValueObject|Repository)\\.+$#'
+    - name: JobPosition
+      collectors:
+        - type: bool
+          must:
+            - type: directory
+              value: src/JobPosition/.*
+          must_not:
+            - type: layer
+              value: JobPositionContract
+            - type: layer
+              value: JobPositionAggregate
+
+    - name: JobApplicationContract
+      collectors:
+        - type: classNameRegex
+          value: '#^App\\JobApplication\\(Domain\\Event\\.+|Application\\.+(Query|Dto))$#'
+    - name: JobApplication
+      collectors:
+        - type: bool
+          must:
+            - type: directory
+              value: src/JobApplication/.*
+          must_not:
+            - type: layer
+              value: JobApplicationContract
+
+
+  ruleset:
+    Shared: ~
+    JobPositionContract: [Shared, JobPosition, JobPositionAggregate]
+    JobPositionAggregate: [Shared]
+    JobApplicationContract: [Shared, JobApplication]
+    JobPosition: [Shared, JobPositionContract, JobPositionAggregate]
+    JobApplication: [Shared, JobApplicationContract, JobPositionContract, JobPositionAggregate]

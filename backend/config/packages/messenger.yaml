@@ -1,0 +1,48 @@
+framework:
+    messenger:
+        default_bus: command.bus
+        buses:
+            # Each command runs in one transaction: if publishing its events fails, the save is rolled back
+            command.bus:
+                middleware:
+                    - doctrine_transaction
+            query.bus: ~
+            event.bus:
+                default_middleware:
+                    enabled: true
+                    allow_no_handlers: true
+
+        transports:
+            enrich_cv_on_job_application_submitted:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: false
+                    exchange:
+                        name: viterbit.domain_events
+                        type: direct
+                        default_publish_routing_key: viterbit.job_application.1.enrich_cv_on_job_application_submitted
+                    queues:
+                        viterbit.job_application.1.enrich_cv_on_job_application_submitted:
+                            binding_keys: [viterbit.job_application.1.enrich_cv_on_job_application_submitted]
+                    delay:
+                        exchange_name: viterbit.domain_events.delays
+                        queue_name_pattern: "%%routing_key%%.delay_%%delay%%"
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                failure_transport: enrich_cv_on_job_application_submitted_dead_letter
+
+            enrich_cv_on_job_application_submitted_dead_letter:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: false
+                    exchange:
+                        name: viterbit.domain_events.dead_letter
+                        type: direct
+                    queues:
+                        viterbit.job_application.1.enrich_cv_on_job_application_submitted.dead_letter:
+                            binding_keys: [viterbit.job_application.1.enrich_cv_on_job_application_submitted]
+
+        routing:
+            App\JobApplication\Domain\Event\JobApplicationSubmitted: enrich_cv_on_job_application_submitted

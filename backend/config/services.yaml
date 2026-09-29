@@ -1,0 +1,31 @@
+parameters:
+    # Defaults, so these variables are optional: set them in the environment only to override
+    env(LLM_PROVIDER): mock
+    env(MOCK_LLM_LATENCY_MS): '1000'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    _instanceof:
+        App\Shared\Application\Bus\Command\ICommandHandler:
+            tags: [{ name: messenger.message_handler, bus: command.bus }]
+        App\Shared\Application\Bus\Query\IQueryHandler:
+            tags: [{ name: messenger.message_handler, bus: query.bus }]
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+
+    App\JobApplication\Application\Worker\EnrichCvOnJobApplicationSubmittedWorker:
+        tags: [{ name: messenger.message_handler, bus: event.bus, from_transport: enrich_cv_on_job_application_submitted }]
+
+    App\Shared\Infrastructure\Llm\LlmClientBuilder:
+        calls:
+            - withProvider: ['%env(enum:App\Shared\Infrastructure\Llm\Enum\LlmProviderEnum:LLM_PROVIDER)%']
+            - withSimulatedLatencyMs: ['%env(int:MOCK_LLM_LATENCY_MS)%']
+
+    App\Shared\Application\Llm\ILlmClient:
+        factory: ['@App\Shared\Infrastructure\Llm\LlmClientBuilder', 'build']

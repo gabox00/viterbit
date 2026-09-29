@@ -1,0 +1,95 @@
+name: viterbit
+
+x-php: &php
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  image: viterbit-php
+  volumes:
+    - ./backend:/app
+  depends_on:
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+x-worker: &worker
+  <<: *php
+  restart: unless-stopped
+  healthcheck:
+    disable: true
+
+services:
+  php:
+    <<: *php
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker-enrich-cv-on-job-application-submitted:
+    <<: *worker
+    command: php bin/console messenger:consume enrich_cv_on_job_application_submitted --time-limit=3600 -vv
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: viterbit
+      POSTGRES_USER: viterbit
+      POSTGRES_PASSWORD: viterbit_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - viterbit_postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U viterbit -d viterbit"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4.3.6-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    image: viterbit-frontend
+    working_dir: /app
+    command: pnpm dev --host 0.0.0.0
+    environment:
+      API_PROXY_TARGET: http://php:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+
+  playwright:
+    build:
+      context: .
+      dockerfile: docker/playwright/Dockerfile
+    image: viterbit-playwright
+    profiles: [test]
+    working_dir: /app
+    ipc: host
+    environment:
+      E2E_BASE_URL: http://frontend:5173
+    volumes:
+      - ./frontend:/app
+
+volumes:
+  viterbit_postgres:
